@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /error/
+Disallow: /hooks/
+Sitemap: file:///C:/xampp/htdocs/www/%D8%A7%D9%84%D9%85%D8%A8%D8%B3%D8%B7/sitemap.xml

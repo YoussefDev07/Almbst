@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+ <url>
+  <loc>http://localhost/www/%d8%a7%d9%84%d9%85%d8%a8%d8%b3%d8%b7</loc>
+  <lastmod>2025-11-07</lastmod>
+  <changefreq>yearly</changefreq>
+  <priority>1.0</priority>
+ </url>
+ <url>
+  <loc>http://localhost/www/%d8%a7%d9%84%d9%85%d8%a8%d8%b3%d8%b7/terms.php</loc>
+  <lastmod>2025-11-07</lastmod>
+  <changefreq>never</changefreq>
+  <priority>0.8</priority>
+ </url>
+<url>
+  <loc>http://localhost/www/%d8%a7%d9%84%d9%85%d8%a8%d8%b3%d8%b7/privacy.php</loc>
+  <lastmod>2025-11-07</lastmod>
+  <changefreq>never</changefreq>
+  <priority>0.8</priority>
+ </url>
+<url>
+  <loc>http://localhost/www/%d8%a7%d9%84%d9%85%d8%a8%d8%b3%d8%b7/refund.php</loc>
+  <lastmod>2025-11-07</lastmod>
+  <changefreq>never</changefreq>
+  <priority>0.8</priority>
+ </url>
+ <url>
+  <loc>http://localhost/www/%d8%a7%d9%84%d9%85%d8%a8%d8%b3%d8%b7/account.php</loc>
+  <lastmod>2025-11-07</lastmod>
+  <changefreq>always</changefreq>
+  <priority>0.2</priority>
+ </url>
+ <url>
+  <loc>file:///C:/xampp/htdocs/www/%D8%A7%D9%84%D9%85%D8%A8%D8%B3%D8%B7/assets/pdf/%D9%83%D8%AA%D8%A7%D8%A8%20%D8%A7%D9%84%D9%85%D8%A8%D8%B3%D8%B7%20%D9%84%D9%84%D9%82%D8%AF%D8%B1%D8%A7%D8%AA%20%D8%A7%D9%84%D9%83%D9%85%D9%8A.pdf</loc>
+  <lastmod>2025-11-08</lastmod>
+  <priority>0.5</priority>
+ </url>
+</urlset>
