@@ -130,7 +130,7 @@
            <div class="book-info">
             <h2 class="wow animate__fadeInDown" data-wow-duration="800ms" data-wow-offset="1">كتاب المبسط</h2>
             <p class="wow animate__fadeInLeft" data-wow-duration="800ms" data-wow-offset="1">تأسيس قدرات كمي</p>
-            <a href="" download><button type="button" class="wow animate__fadeInUp" data-wow-duration="800ms" data-wow-offset="1"><i class="fas fa-download"></i>تحميل الكتاب بصيغة PDF</button></a>
+            <a href="./assets/pdf/كتاب المبسط للقدرات الكمي.pdf" download><button type="button" class="wow animate__fadeInUp" data-wow-duration="800ms" data-wow-offset="1"><i class="fas fa-download"></i>تحميل الكتاب بصيغة PDF</button></a>
            </div>
         </div>
        </section>
