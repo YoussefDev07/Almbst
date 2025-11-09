@@ -7,7 +7,7 @@ function convert_duration_to_arabic($duration) {
 	return "شهرين";
   }
   elseif ($duration == "11m") {
-	return str_replace("m", " شهر", $duration)
+	return str_replace("m", " شهر", $duration);
   }
   elseif ($duration == "12m" || $duration == "1y") {
 	return "سنة";
