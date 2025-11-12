@@ -79,7 +79,7 @@
      <main>
       <!--interface-->
        <section id="particles" class="interface">
-        <img src="./assets/images/interface.png" alt="interface-logo" fetchpriority="high">
+        <img src="./assets/images/interface.webp" alt="interface-image" fetchpriority="high">
        </section>
       <!--courses-->
        <section id="courses">

@@ -39,13 +39,13 @@ $total_sections = $db->query("SELECT COUNT(*) FROM courses_sections")->fetchColu
         <div class="quick-actions">
             <h2>الإجراءات</h2>
             <div class="action-buttons">
-                <a href="courses.php?action=add" class="action-btn">
-                    <span>➕</span>
-                    <span>إضافة كورس جديد</span>
-                </a>
-                <a href="sections.php?action=add" class="action-btn">
+                <a href="./exams/" class="action-btn">
                     <span>📝</span>
-                    <span>إضافة قسم جديد</span>
+                    <span>إدارة الإختبارات</span>
+                </a>
+                <a href="./exams/results.php" class="action-btn">
+                    <span>📑</span>
+                    <span>درجات المختبرين</span>
                 </a>
                 <a href="./codes.php" class="action-btn">
                     <span>🔢</span>

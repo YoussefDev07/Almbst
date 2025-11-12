@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
   if ($pin == $master_user__id) {
     $_SESSION['admin_logged_in'] = true;
-    header("Location: index.php");
+    header("Location:index.php");
     exit();
   } else {
     $error = "الرقم السري غير صحيح";
