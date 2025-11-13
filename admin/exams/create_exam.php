@@ -76,6 +76,7 @@ if (!empty($_GET['id'])) {
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= $edit ? 'تعديل' : 'إنشاء' ?> اختبار</title>
 <style>
 /* تنسيق عام للصفحة */
@@ -126,8 +127,7 @@ form label {
   font-weight: bold;
 }
 
-form input[type="text"],
-form select {
+form input[type="text"] {
   width: 100%;
   padding: 10px;
   margin-top: 5px;
@@ -139,6 +139,28 @@ form select {
 
 form input[type="file"] {
   margin-top: 10px;
+}
+
+.correct-options {
+  margin-top: 10px;
+  margin-bottom: 15px;
+  display: flex;
+  gap: 20px;
+}
+
+.correct-options label {
+  display: flex;
+  font-size: 25px;
+  align-items: center;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.correct-options input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  margin-left: 6px;
+  accent-color: #3498db;
 }
 
 form button {
@@ -218,8 +240,17 @@ hr {
     font-size: 14px;
   }
   
-  form input[type="text"], form select {
+  form input[type="text"] {
     padding: 8px;
+  }
+
+  .correct-options {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .correct-options label {
+    font-size: 18px;
   }
   
   form button {
@@ -275,18 +306,19 @@ function makeQ(i, data = {}) {
     <input type="file" accept="image/*" class="q_image"><br>
     ${data.q_image ? `<img src="${data.q_image}" class="preview">` : ''}
     <input type="hidden" class="q_image_path" value="${data.q_image}">
-    <br><br>
-    أ: <input type="text" class="a" value="أ"><br>
-    ب: <input type="text" class="b" value="ب"><br>
-    ج: <input type="text" class="c" value="ج"><br>
-    د: <input type="text" class="d" value="د"><br>
+    <br>
+    <input type="hidden" class="a" value="أ">
+    <input type="hidden" class="b" value="ب">
+    <input type="hidden" class="c" value="ج">
+    <input type="hidden" class="d" value="د">
     الإجابة الصحيحة:
-    <select class="correct">
-      <option value="A">أ</option>
-      <option value="B">ب</option>
-      <option value="C">ج</option>
-      <option value="D">د</option>
-    </select>
+    <div class="correct-options">
+     <label><input type="radio" name="correct" value="A" class="correct"> أ</label>
+     <label><input type="radio" name="correct" value="B" class="correct"> ب</label>
+     <label><input type="radio" name="correct" value="C" class="correct"> ج</label>
+     <label><input type="radio" name="correct" value="D" class="correct"> د</label>
+    </div>
+
   </div>`);
 
   $q.find('.a').val(data.a);
@@ -358,7 +390,7 @@ $('#createForm').submit(function(e){
     const b = $(this).find(".b").val().trim() || "ب";
     const c = $(this).find(".c").val().trim() || "ج";
     const d = $(this).find(".d").val().trim() || "د";
-    const correct = $(this).find(".correct").val();
+    const correct = $(this).find("input.correct:checked").val();
 
     if(!q_image || !a || !b || !c || !d){
       isValid = false;
