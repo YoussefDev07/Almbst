@@ -39,14 +39,38 @@
  <div class="contents" session-id="<?= $course["id"]; ?>">
   <aside>
    <?php
-     #contents
-     $course_categories = $connect -> query("SELECT * FROM courses_sections WHERE type = 'category' AND course_id = ".$course["id"]);
+     $uncategorized_elements = $connect -> query(
+       "SELECT * FROM courses_sections
+        WHERE type = 'element'
+        AND course_id = ".$course["id"]."
+        AND (category_id IS NULL OR category_id = 0)
+        ORDER BY id ASC"
+     );
+     while ($uncategorized_element = $uncategorized_elements -> fetch()):
+   ?>
+   <button type="button" data-id="<?= $uncategorized_element["id"]; ?>"><i class="fas fa-play fa-rotate-180"></i><?= $uncategorized_element["title"]; ?></button>
+   <hr>
+   <?php endwhile; ?>
+
+   <?php
+     # categories
+     $course_categories = $connect -> query(
+       "SELECT * FROM courses_sections
+        WHERE type = 'category'
+        AND course_id = ".$course["id"]."
+        ORDER BY id ASC"
+     );
      while ($course_category = $course_categories -> fetch()):
    ?>
    <details>
     <summary><?= $course_category["title"]; ?></summary>
     <?php
-     $category_elements = $connect -> query("SELECT * FROM courses_sections WHERE type = 'element' AND category_id = ".$course_category["id"]);
+     $category_elements = $connect -> query(
+       "SELECT * FROM courses_sections
+        WHERE type = 'element'
+        AND category_id = ".$course_category["id"]."
+        ORDER BY id ASC"
+     );
      while ($category_element = $category_elements -> fetch()):
     ?>
     <button type="button" data-id="<?= $category_element["id"]; ?>"><i class="fas fa-play fa-rotate-180"></i><?= $category_element["title"]; ?></button>

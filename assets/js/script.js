@@ -80,7 +80,7 @@ $("#closeSlider").click(function(){
 
 // contents
 
-$(".contents aside details button").click(function(){
+$(".contents aside button").click(function(){
   var sessionID = $(".contents").attr("session-id");
   var videoID = $(this).attr("data-id");
   location.assign(`./course.php?session=${sessionID}&id=${videoID}`);
