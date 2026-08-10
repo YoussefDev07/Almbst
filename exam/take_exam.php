@@ -8,7 +8,9 @@ if (!$user_id) {
   exit();
 }
 
-$check_user_subscriptions = $connect -> query("SELECT id FROM subscriptions WHERE user_id = $user_id") -> fetchAll(PDO::FETCH_COLUMN);
+$subStmt = $connect->prepare("SELECT id FROM subscriptions WHERE user_id = ?");
+$subStmt->execute([$user_id]);
+$check_user_subscriptions = $subStmt->fetchAll(PDO::FETCH_COLUMN);
     
 if (empty($check_user_subscriptions[0])) {
   header("location:../account.php");
@@ -36,9 +38,8 @@ if (count($questions) === 0) {
 }
 
 $num = count($questions);
-$allowed = $num*60 + 60;
+$allowed = $num * (60 * 2);
 
-// بدء سجل النتيجة
 $insert = $connect->prepare("INSERT INTO results (user_id, exam_id, score, started_at, allowed_seconds) VALUES (?, ?, 0, NOW(), ?)");
 $insert->execute([$user_id, $exam_id, $allowed]);
 $result_id = $connect->lastInsertId();
@@ -332,16 +333,16 @@ function renderQuestion(i){
   let html = `<h3>س ${i+1} من ${num}</h3><br>`;
   html += `<img class="exam-image" src="${escapeHtml(q.q_image)}">`;
   html += `<div>
-    <label><input type="radio" name="choice" value="A">${escapeHtml(q.choice_a||'')}</label><br>
-    <label><input type="radio" name="choice" value="B">${escapeHtml(q.choice_b||'')}</label><br>
-    <label><input type="radio" name="choice" value="C">${escapeHtml(q.choice_c||'')}</label><br>
-    <label><input type="radio" name="choice" value="D">${escapeHtml(q.choice_d||'')}</label><br>
+    <label><input type="radio" name="choice_${q.id}" value="A"><span>${escapeHtml(q.choice_a||'')}</span></label><br>
+    <label><input type="radio" name="choice_${q.id}" value="B"><span>${escapeHtml(q.choice_b||'')}</span></label><br>
+    <label><input type="radio" name="choice_${q.id}" value="C"><span>${escapeHtml(q.choice_c||'')}</span></label><br>
+    <label><input type="radio" name="choice_${q.id}" value="D"><span>${escapeHtml(q.choice_d||'')}</span></label><br>
   </div>`;
   
   $('#questionArea').html(html);
 
   if (answers[q.id] && answers[q.id].selected) {
-    $(`input[name=choice][value="${answers[q.id].selected}"]`).prop('checked', true);
+    $(`input[name="choice_${q.id}"][value="${answers[q.id].selected}"]`).prop('checked', true);
   }
 
   buildNav();
@@ -379,7 +380,7 @@ function saveAndGoto(next_index){
   if (next_index === current) return;
 
   const q = questions[current];
-  const chosen = $('input[name=choice]:checked').val() || null;
+  const chosen = $(`input[name="choice_${q.id}"]:checked`).val() || null;
   const elapsed = Math.round((Date.now() - qStart) / 1000);
 
   answers[q.id] = answers[q.id] || {selected: null, timeUsed: 0};
@@ -407,7 +408,7 @@ function finishTest(auto = false){
   $('.qnav, #prev, #next').prop('disabled', true);
 
   const q = questions[current];
-  const chosen = $('input[name=choice]:checked').val() || null;
+  const chosen = $(`input[name="choice_${q.id}"]:checked`).val() || null;
   const elapsed = Math.round((Date.now() - qStart) / 1000);
   answers[q.id] = answers[q.id] || {selected: null, timeUsed: 0};
   answers[q.id].selected = chosen;

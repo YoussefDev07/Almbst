@@ -4,71 +4,126 @@ include "../config.php";
 $err = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $title = trim($_POST['title']);
-  $questions = json_decode($_POST['questions_json'], true);
+  $title = trim((string)($_POST['title'] ?? ''));
+  $rawQuestions = (string)($_POST['questions_json'] ?? '');
+  $questions = json_decode($rawQuestions, true);
 
-  if (!$title) {
+  if ($title === '') {
     $err = 'أدخل اسم الاختبار';
-  } else if (empty($questions)) {
-    $err = 'يجب إضافة سؤال واحد على الأقل';
+  } elseif (json_last_error() !== JSON_ERROR_NONE || !is_array($questions) || empty($questions)) {
+    $err = 'بيانات الأسئلة غير صحيحة أو لا يوجد سؤال واحد على الأقل.';
   } else {
-    $connect->beginTransaction();
-    try {
-      if (!empty($_POST['id'])) {
-        $id = intval($_POST['id']);
-        $stmt = $connect->prepare("UPDATE exams SET title = ?, num_questions = ? WHERE id = ?");
-        $stmt->execute([$title, count($questions), $id]);
-        $connect->prepare("DELETE FROM questions WHERE exam_id = ?")->execute([$id]);
-      } else {
-        $stmt = $connect->prepare("INSERT INTO exams (title, num_questions) VALUES (?, ?)");
-        $stmt->execute([$title, count($questions)]);
-        $id = $connect->lastInsertId();
+    $cleanQuestions = [];
+    foreach ($questions as $index => $q) {
+      if (!is_array($q)) {
+        $err = 'بيانات السؤال رقم ' . ($index + 1) . ' غير صحيحة.';
+        break;
       }
 
-      $ins = $connect->prepare("INSERT INTO questions (exam_id, q_image, choice_a, choice_b, choice_c, choice_d, correct_choice, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-      $pos = 1;
-      foreach ($questions as $q) {
-        $ins->execute([
-          $id,
-          $q['q_image'] ?? '',
-          $q['a'] ?? '',
-          $q['b'] ?? '',
-          $q['c'] ?? '',
-          $q['d'] ?? '',
-          strtoupper($q['correct'] ?? 'A'),
-          $pos++
-        ]);
+      $correct = strtoupper(trim((string)($q['correct'] ?? '')));
+      if (!in_array($correct, ['A', 'B', 'C', 'D'], true)) {
+        $err = 'يجب تحديد الإجابة الصحيحة للسؤال رقم ' . ($index + 1) . '.';
+        break;
       }
 
-      $connect->commit();
-    } catch (Exception $e) {
-      $connect->rollBack();
-      $err = "حدث خطأ: " . $e->getMessage();
+      $cleanQuestions[] = [
+        'q_image' => trim((string)($q['q_image'] ?? '')),
+        'a' => trim((string)($q['a'] ?? '')),
+        'b' => trim((string)($q['b'] ?? '')),
+        'c' => trim((string)($q['c'] ?? '')),
+        'd' => trim((string)($q['d'] ?? '')),
+        'correct' => $correct
+      ];
     }
 
-    if (!$err) {
-      header("Location:index.php");
-      exit();
+    if ($err === '' && count($cleanQuestions) === 0) {
+      $err = 'يجب إضافة سؤال واحد على الأقل.';
+    }
+
+    if ($err === '') {
+      $connect->beginTransaction();
+      try {
+        $postedId = (int)($_POST['id'] ?? 0);
+
+        if ($postedId > 0) {
+          $check = $connect->prepare('SELECT id FROM exams WHERE id = ? FOR UPDATE');
+          $check->execute([$postedId]);
+          if (!$check->fetchColumn()) {
+            throw new RuntimeException('الاختبار المطلوب تعديله غير موجود.');
+          }
+          $id = $postedId;
+
+          $stmt = $connect->prepare('UPDATE exams SET title = ?, num_questions = ? WHERE id = ?');
+          $stmt->execute([$title, count($cleanQuestions), $id]);
+
+          $deleteAnswers = $connect->prepare(
+            'DELETE FROM answers WHERE question_id IN (SELECT id FROM questions WHERE exam_id = ?)'
+          );
+          $deleteAnswers->execute([$id]);
+
+          $deleteQuestions = $connect->prepare('DELETE FROM questions WHERE exam_id = ?');
+          $deleteQuestions->execute([$id]);
+        } else {
+          $stmt = $connect->prepare('INSERT INTO exams (title, num_questions) VALUES (?, ?)');
+          $stmt->execute([$title, count($cleanQuestions)]);
+          $id = (int)$connect->lastInsertId();
+          if ($id <= 0) {
+            throw new RuntimeException('تعذر إنشاء الاختبار في قاعدة البيانات.');
+          }
+        }
+
+        $ins = $connect->prepare(
+          'INSERT INTO questions
+           (exam_id, q_image, choice_a, choice_b, choice_c, choice_d, correct_choice, position)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        );
+
+        foreach ($cleanQuestions as $pos => $q) {
+          $ins->execute([
+            $id,
+            $q['q_image'],
+            $q['a'],
+            $q['b'],
+            $q['c'],
+            $q['d'],
+            $q['correct'],
+            $pos + 1
+          ]);
+        }
+
+        $connect->commit();
+      } catch (Throwable $e) {
+        if ($connect->inTransaction()) {
+          $connect->rollBack();
+        }
+        $err = 'حدث خطأ في قاعدة البيانات: ' . $e->getMessage();
+      }
+
+      if ($err === '') {
+        header('Location: index.php');
+        exit();
+      }
     }
   }
 }
-
 $edit = null;
 $qs = [];
 if (!empty($_GET['id'])) {
-  $id = intval($_GET['id']);
-  $stmt = $connect->prepare("SELECT * FROM exams WHERE id = ?");
-  $stmt->execute([$id]);
-  $edit = $stmt->fetch(PDO::FETCH_ASSOC);
+  $id = (int)$_GET['id'];
+  if ($id > 0) {
+    $stmt = $connect->prepare('SELECT * FROM exams WHERE id = ? LIMIT 1');
+    $stmt->execute([$id]);
+    $edit = $stmt->fetch(PDO::FETCH_ASSOC);
 
-  $qs_stmt = $connect->prepare("SELECT * FROM questions WHERE exam_id = ? ORDER BY position ASC");
-  $qs_stmt->execute([$id]);
-  $qs = $qs_stmt->fetchAll(PDO::FETCH_ASSOC);
-
-  if (!$edit) {
-    $err = "الاختبار غير موجود.";
-    $edit = null;
-    $qs = [];
+    if ($edit) {
+      $qs_stmt = $connect->prepare('SELECT * FROM questions WHERE exam_id = ? ORDER BY position ASC, id ASC');
+      $qs_stmt->execute([$id]);
+      $qs = $qs_stmt->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+      $err = 'الاختبار غير موجود.';
+      $edit = null;
+      $qs = [];
+    }
   }
 }
 ?>
@@ -313,10 +368,10 @@ function makeQ(i, data = {}) {
     <input type="hidden" class="d" value="د">
     الإجابة الصحيحة:
     <div class="correct-options">
-     <label><input type="radio" name="correct" value="A" class="correct"> أ</label>
-     <label><input type="radio" name="correct" value="B" class="correct"> ب</label>
-     <label><input type="radio" name="correct" value="C" class="correct"> ج</label>
-     <label><input type="radio" name="correct" value="D" class="correct"> د</label>
+     <label><input type="radio" name="correct_${i}" value="A" class="correct"> أ</label>
+     <label><input type="radio" name="correct_${i}" value="B" class="correct"> ب</label>
+     <label><input type="radio" name="correct_${i}" value="C" class="correct"> ج</label>
+     <label><input type="radio" name="correct_${i}" value="D" class="correct"> د</label>
     </div>
 
   </div>`);
@@ -325,7 +380,8 @@ function makeQ(i, data = {}) {
   $q.find('.b').val(data.b);
   $q.find('.c').val(data.c);
   $q.find('.d').val(data.d);
-  $q.find('.correct').val(data.correct);
+  $q.find('.correct').prop('checked', false);
+  $q.find(`.correct[value="${String(data.correct).toUpperCase()}"]`).prop('checked', true);
 
   return $q;
 }
@@ -338,6 +394,7 @@ $('#questionsContainer').on('click','.removeQ',function(){
   $('#questionsContainer .q').each((i,el)=>{
     $(el).find('h4').html(`سؤال ${i+1} <button type="button" class="removeQ">حذف</button>`);
     $(el).attr('data-i',i+1);
+    $(el).find('input.correct').attr('name', `correct_${i+1}`);
   });
   counter = $('#questionsContainer .q').length + 1;
 });
@@ -392,7 +449,7 @@ $('#createForm').submit(function(e){
     const d = $(this).find(".d").val().trim() || "د";
     const correct = $(this).find("input.correct:checked").val();
 
-    if(!q_image || !a || !b || !c || !d){
+    if(!q_image || !a || !b || !c || !d || !correct){
       isValid = false;
       alert(`يرجى ملء جميع الحقول ورفع صورة للسؤال رقم ${$(this).data('i')}`);
       return false;
@@ -400,9 +457,8 @@ $('#createForm').submit(function(e){
     questions.push({q_image,a,b,c,d,correct});
   });
 
-  // التحقق من الصلاحية خارج الحلقة
   if (!isValid) {
-    e.preventDefault(); // إيقاف الإرسال إذا كان هناك خطأ
+    e.preventDefault();
     return;
   }
 
