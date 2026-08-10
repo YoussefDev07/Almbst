@@ -914,12 +914,15 @@ main {
   width: 700px;
   height: 75px;
   margin-top: 25px;
-  margin-bottom: 100px;
   background-color: #eee;
   border-radius: 3px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.contents .content .test:last-child {
+    margin-bottom: 100px
 }
 
 .contents .content .test span {
@@ -974,9 +977,32 @@ main {
   .contents .content .test {
    width: 95%;
    height: 100px;
-   margin-top: 50px;
-   margin-bottom: 50px;
+   margin-top: 10px;
   }
+  .contents .content .test:nth-child(1) {
+     margin-top: 50px
+  }
+  .contents .content .test:last-child {
+    margin-bottom: 50px
+   }
+}
+
+/*@media: contents (mobile)*/
+
+@media (max-width:767px) {
+    .contents .content .test {
+        height: 75px;
+    }
+    .contents .content .test span {
+        margin-right: 10px;
+        font-size: 22px;
+    }
+    .contents .content .test a {
+        margin-left: 5px;
+    }
+    .contents .content .test button {
+        scale: .9;
+    }
 }
 
 /*conditions*/

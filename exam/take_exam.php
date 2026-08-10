@@ -155,6 +155,8 @@ body {
 #questionArea input[type="radio"] {
   accent-color: var(--primary);
   margin-top: 2px;
+  width: 20px;
+  height: 20px;
 }
 
 /* حالة الخيار المحدد */

@@ -85,13 +85,28 @@
     <h6><?= $course_item["title"] ?></h6>
     <video src="<?= $course_item["video"] ?>" controls controlsList="nodownload">المتصفح الذي تستخدمه لا يفتح الفيديوهات</video>
     <?php
-     if (!empty($course_item["test"])):
-    ?>
+if (!empty($course_item["test"])):
+    $tests = preg_split('/\r\n|\r|\n/', $course_item["test"]);
+
+    $tests = array_values(array_filter(array_map('trim', $tests)));
+
+    $test_count = count($tests);
+
+    foreach ($tests as $index => $test):
+?>
     <div class="test">
-     <span>اختبار على الدرس</span>
-     <a href="<?= $course_item["test"] ?>" target="_blank"><button type="button">بدء الإختبار</button></a>
+        <span>
+            اختبار على الدرس<?= $test_count > 1 ? ' (' . ($index + 1) . ')' : '' ?>
+        </span>
+
+        <a href="<?= htmlspecialchars($test) ?>" target="_blank">
+            <button type="button">بدء الإختبار</button>
+        </a>
     </div>
-    <?php endif; ?>
+<?php
+    endforeach;
+endif;
+?>
    </div>
    <?php endif; ?>
  </div>

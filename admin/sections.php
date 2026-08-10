@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $_POST['title'],
                     $_POST['course_id'],
                     $_POST['category_id'] ?: null,
-                    $_POST['video'] ?: null,
+                    $_POST['video'] ? str_replace("&dl=0", "&raw=1", $_POST['video']):null,
                     $_POST['test'] ?: null
                 ]);
                 $message = "تم إضافة القسم بنجاح";
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $_POST['title'],
                     $_POST['course_id'],
                     $_POST['category_id'] ?: null,
-                    $_POST['video'] ?: null,
+                    $_POST['video'] ? str_replace("&dl=0", "&raw=1", $_POST['video']):null,
                     $_POST['test'] ?: null,
                     $_POST['id']
                 ]);
@@ -157,7 +157,7 @@ $sections = $db->query("SELECT cs.*, c.title as course_title, cat.title as categ
                 
                 <div class="form-group" id="video-field">
                     <label for="video">رابط الفيديو</label>
-                    <input type="text" id="video" name="video" placeholder="https://www.youtube.com/watch?v=..." 
+                    <input type="text" id="video" name="video" placeholder="https://www.dropbox.com/scl/fi/..." 
                            value="<?php echo $edit_section ? htmlspecialchars($edit_section['video']) : ''; ?>">
                 </div>
                 
