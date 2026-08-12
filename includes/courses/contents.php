@@ -83,7 +83,9 @@
   <?php $course_item = $connect -> query("SELECT * FROM courses_sections WHERE id = ".$session["id"]) -> fetchAll(PDO::FETCH_ASSOC); $course_item = $course_item[0]; ?>
    <div class="content">
     <h6><?= $course_item["title"] ?></h6>
-    <video src="<?= $course_item["video"] ?>" controls controlsList="nodownload">المتصفح الذي تستخدمه لا يفتح الفيديوهات</video>
+    <?php if (isset($course_item["video"])): ?>
+     <video src="<?= $course_item["video"] ?>" controls controlsList="nodownload">المتصفح الذي تستخدمه لا يفتح الفيديوهات</video>
+    <?php endif; ?>
     <?php
 if (!empty($course_item["test"])):
     $tests = preg_split('/\r\n|\r|\n/', $course_item["test"]);
