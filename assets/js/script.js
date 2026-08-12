@@ -86,6 +86,12 @@ $(".contents aside button").click(function(){
   location.assign(`./course.php?session=${sessionID}&id=${videoID}`);
 });
 
+// whatsapp
+
+$(".whatsapp").click(function(){
+  window.open("https://wa.me/000000000000", "_blank");    
+});
+
 // copyrights 
 
 $("#copyrightsYear").html(date.getFullYear());

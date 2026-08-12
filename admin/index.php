@@ -52,6 +52,17 @@ $total_sections = $db->query("SELECT COUNT(*) FROM courses_sections")->fetchColu
                     <span>إدارة رموز التفعيل</span>
                 </a>
             </div>
+            <br>
+            <div class="action-buttons">
+                <a href="./subscribers.php" class="action-btn">
+                    <span>🏷</span>
+                    <span>المشتركين</span>
+                </a>
+                <a href="./library.php" class="action-btn">
+                    <span>📁</span>
+                    <span>ملفات المكتبة</span>
+                </a>
+            </div>
         </div>
     </div>
 </body>

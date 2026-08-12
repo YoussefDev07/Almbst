@@ -57,6 +57,7 @@
         <a>الرئيسية</a>
         <a href="#courses">الدورات</a>
         <a href="#book">كتاب المبسط</a>
+        <a href="./library.php">المكتبة</a>
        </nav>
       <?php include "./includes/account.php"; ?>
       <!--slider-->
@@ -68,6 +69,7 @@
           <li><a>الرئيسية</a></li>
           <li><a href="#courses">الدورات</a></li>
           <li><a href="#book">كتاب المبسط</a></li>
+          <li><a href="./library.php">المكتبة</a></li>
          </ul>
          <?php include "./includes/account.php"; ?>
         </nav>
@@ -125,7 +127,7 @@
       <!--book-->
        <section id="book">
         <div>
-         <img class="wow animate__fadeInRight" data-wow-duration="800ms" data-wow-offset="1" src="./assets/images/almbst_book.png" alt="كتاب المبسط" loading="lazy">
+         <a href="./assets/pdf/كتاب المبسط للقدرات الكمي.pdf" target="_blank"><img class="wow animate__fadeInRight" data-wow-duration="800ms" data-wow-offset="1" src="./assets/images/almbst_book.png" alt="كتاب المبسط" loading="lazy"></a>
           <!--book-info-->
            <div class="book-info">
             <h2 class="wow animate__fadeInDown" data-wow-duration="800ms" data-wow-offset="1">كتاب المبسط</h2>
@@ -134,6 +136,10 @@
            </div>
         </div>
        </section>
+       <!--whatsapp-->
+        <div class="whatsapp" title="التواصل عبر واتساب">
+         <i class="fab fa-whatsapp"></i>
+        </div>
      </main>
     <?php include "./includes/footer.html"; ?>
    </div>

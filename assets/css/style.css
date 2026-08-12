@@ -480,7 +480,7 @@ main {
   align-items: center;
 }
 
-#book div > img {
+#book div img {
   margin-right: 100px;
   width: auto;
   height: 90%;
@@ -496,7 +496,7 @@ main {
    flex-direction: column;
    align-items: center;
   }
-  #book div > img {
+  #book div img {
    margin-top: 50px;
    margin-right: 0;
    width: 45%;
@@ -510,7 +510,7 @@ main {
   #book {
    height: 850px;
   }
-  #book div > img {
+  #book div img {
    width: 32%;
   }
 }
@@ -562,6 +562,27 @@ main {
   margin-top: 25px;
   margin-bottom: 25px;
   }
+}
+
+/*whatsapp*/
+
+.whatsapp {
+  width: 60px;
+  height: 60px;
+  background-color: #25D366;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  right: 25px;
+  bottom: 50px;
+  cursor: pointer;
+}
+
+.whatsapp > i {
+  font-size: 35px;
+  color: white;
 }
 
 /*accounts*/

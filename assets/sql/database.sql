@@ -40,7 +40,7 @@ CREATE TABLE courses (
 CREATE TABLE courses_sections (
   id int(11) PRIMARY KEY AUTO_INCREMENT,
   type ENUM("category", "element"),
-  title varchar(38),
+  title varchar(100),
   course_id int(4),
   category_id int(11),
   video text,
