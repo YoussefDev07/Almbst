@@ -135,13 +135,13 @@ $sections = $db->query("SELECT cs.*, c.title as course_title, cat.title as categ
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="title">العنوان</label>
                     <input type="text" id="title" name="title" required 
                            value="<?php echo $edit_section ? htmlspecialchars($edit_section['title']) : ''; ?>">
                 </div>
-                
+
                 <div class="form-group" id="category-field">
                     <label for="category_id">القسم الرئيسي (اختياري)</label>
                     <select id="category_id" name="category_id">
@@ -154,7 +154,7 @@ $sections = $db->query("SELECT cs.*, c.title as course_title, cat.title as categ
                         <?php endforeach; ?>
                     </select>
                 </div>
-                
+
                 <div class="form-group" id="video-field">
                     <label for="video">رابط الفيديو</label>
                     <input type="text" id="video" name="video" placeholder="https://www.dropbox.com/scl/fi/..." 

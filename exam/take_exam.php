@@ -249,7 +249,7 @@ button:disabled {
   color: var(--primary);
 }
 
-/* الأسئلة المُجاب عنها (يتم تلوينها أخضر) */
+/* الأسئلة المُجاب عنها */
 #questionNav .qnav.answered {
   background: #ecfdf5;
   border-color: #d1fae5;
@@ -333,7 +333,7 @@ let isSubmitting = false;
 function renderQuestion(i){
   const q = questions[i];
   let html = `<h3>س ${i+1} من ${num}</h3><br>`;
-  html += `<img class="exam-image" src="${escapeHtml(q.q_image)}">`;
+  if (q.q_image) { html += `<img class="exam-image" src="${escapeHtml(q.q_image)}" alt="صورة السؤال">`; }
   html += `<div>
     <label><input type="radio" name="choice_${q.id}" value="A"><span>${escapeHtml(q.choice_a||'')}</span></label><br>
     <label><input type="radio" name="choice_${q.id}" value="B"><span>${escapeHtml(q.choice_b||'')}</span></label><br>
@@ -352,6 +352,8 @@ function renderQuestion(i){
 
   $('#prev').prop('disabled', i === 0);
   $('#next').prop('disabled', i === num - 1);
+
+  $('#submitBtn').toggle(i === num - 1);
 }
 
 function buildNav(){
@@ -364,7 +366,6 @@ function buildNav(){
     }
     $('#questionNav').append(btn);
 
-    // style
     if (i === current) btn.addClass('current');
     if (answers[questions[i].id] && answers[questions[i].id].selected) {
       btn.addClass('answered');
@@ -403,7 +404,25 @@ function saveAndGoto(next_index){
 $('#submitBtn').click(()=> finishTest(false));
 
 function finishTest(auto = false){
-  if (isSubmitting) return; 
+  if (isSubmitting) return;
+
+  if (!auto) {
+    const currentQuestion = questions[current];
+    const currentChosen = $(`input[name="choice_${currentQuestion.id}"]:checked`).val() || null;
+
+    answers[currentQuestion.id] = answers[currentQuestion.id] || {selected: null, timeUsed: 0};
+    answers[currentQuestion.id].selected = currentChosen;
+
+    const unanswered = questions.filter(q => {
+      return !answers[q.id] || !answers[q.id].selected;
+    });
+
+    if (unanswered.length > 0) {
+      alert(`لا يمكن إنهاء الاختبار الآن. يجب الإجابة عن جميع الأسئلة أولاً. المتبقي: ${unanswered.length} سؤال.`);
+      return;
+    }
+  }
+
   isSubmitting = true;
   clearInterval(timerInterval);
   $('#submitBtn').prop('disabled', true).text('جاري الإنهاء...');
@@ -416,11 +435,11 @@ function finishTest(auto = false){
   answers[q.id].selected = chosen;
   answers[q.id].timeUsed += elapsed;
 
-  $.post('../hooks/save_answer.php', { 
-    result_id: resultId, 
-    question_id: q.id, 
-    selected_choice: chosen, 
-    time_taken_seconds: elapsed 
+  $.post('../hooks/save_answer.php', {
+    result_id: resultId,
+    question_id: q.id,
+    selected_choice: chosen,
+    time_taken_seconds: elapsed
   })
   .always(function() {
     $.post('./submit_exam.php', { result_id: resultId }, function(r){
@@ -428,14 +447,14 @@ function finishTest(auto = false){
         window.location = 'view_result.php?id=' + r.result_id;
       } else {
         alert(r.message || 'حدث خطأ أثناء إنهاء الاختبار.');
-        isSubmitting = false; 
+        isSubmitting = false;
         $('#submitBtn').prop('disabled', false).text('إنهاء الاختبار');
       }
     }, 'json')
     .fail(function() {
-        alert('خطأ في الاتصال بالخادم عند محاولة الإنهاء.');
-        isSubmitting = false;
-        $('#submitBtn').prop('disabled', false).text('إنهاء الاختبار');
+      alert('خطأ في الاتصال بالخادم عند محاولة الإنهاء.');
+      isSubmitting = false;
+      $('#submitBtn').prop('disabled', false).text('إنهاء الاختبار');
     });
   });
 }

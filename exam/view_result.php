@@ -28,8 +28,8 @@ if (!$is_admin && ($current_user_id <= 0 || $current_user_id !== (int)$r['user_i
     exit('غير مصرح');
 }
 
-$answersStmt = $connect->prepare("SELECT a.*, q.q_image, q.choice_a, q.choice_b, q.choice_c, q.choice_d, q.correct_choice, q.position FROM answers a JOIN questions q ON q.id = a.question_id WHERE a.result_id = ? ORDER BY q.position ASC, q.id ASC");
-$answersStmt->execute([$id]);
+$answersStmt = $connect->prepare("SELECT q.id AS question_id, q.q_image, q.choice_a, q.choice_b, q.choice_c, q.choice_d, q.correct_choice, q.position, a.id AS answer_id, a.selected_choice, a.is_correct, a.time_taken_seconds FROM questions q LEFT JOIN answers a ON a.id = (SELECT a2.id FROM answers a2 WHERE a2.result_id = ? AND a2.question_id = q.id ORDER BY a2.id DESC LIMIT 1) WHERE q.exam_id = ? ORDER BY q.position ASC, q.id ASC");
+$answersStmt->execute([$id, (int)$r['exam_id']]);
 $answers = $answersStmt->fetchAll(PDO::FETCH_ASSOC);
 
 $student_name = trim(
@@ -67,6 +67,8 @@ p { font-size:16px; margin:8px 0; }
 .card img { display:block; max-width:100%; height:auto; border-radius:5px; }
 .card div.correct { background:#eafaf1; border-right:4px solid #2ecc71; padding:6px; border-radius:6px; }
 .card div.wrong { background:#f2cac7; border-right:4px solid #e74c3c; padding:6px; border-radius:6px; }
+.card div.unanswered { background:#fff4cc; border-right:4px solid #f1c40f; padding:6px; border-radius:6px; }
+.question-number { margin-bottom:8px; color:#2c3e50; }
 @media(max-width:768px){ .container{margin:20px 10px;padding:20px} h2{font-size:22px} h3{font-size:18px} p{font-size:14px} }
 </style>
 <title>عرض النتيجة</title>
@@ -78,16 +80,32 @@ p { font-size:16px; margin:8px 0; }
 <p>النتيجة: <?= $score ?>%</p>
 <p>الزمن المستغرق: <?= gmdate('H:i:s', $totalTime) ?></p>
 <h3>تفاصيل الأسئلة</h3>
-<?php foreach ($answers as $a): ?>
+<?php foreach ($answers as $index => $a): ?>
+  <?php
+    $selectedChoice = strtoupper(trim((string)($a['selected_choice'] ?? '')));
+    $hasAnswer = $selectedChoice !== '';
+    $isCorrect = $hasAnswer && (int)$a['is_correct'] === 1;
+  ?>
   <div class="card">
+    <div class="question-number"><strong>السؤال <?= $index + 1 ?></strong></div>
+
     <?php if (!empty($a['q_image'])): ?>
       <div><img src="<?= htmlspecialchars($a['q_image'], ENT_QUOTES, 'UTF-8') ?>" alt="صورة السؤال"></div>
     <?php endif; ?>
-    <?php $isCorrect = (int)$a['is_correct'] === 1; ?>
-    <div class="<?= $isCorrect ? 'correct' : 'wrong' ?>">
-      <strong>إجابتك:</strong> <?= htmlspecialchars(choices($a['selected_choice'] ?? ''), ENT_QUOTES, 'UTF-8') ?>
-    </div>
-    <?php if (!$isCorrect): ?>
+
+    <?php if (!$hasAnswer): ?>
+      <div class="unanswered">
+        <strong>إجابتك:</strong> بدون إجابة
+      </div>
+      <div><strong>الإجابة الصحيحة:</strong> <?= htmlspecialchars(choices($a['correct_choice'] ?? ''), ENT_QUOTES, 'UTF-8') ?></div>
+    <?php elseif ($isCorrect): ?>
+      <div class="correct">
+        <strong>إجابتك:</strong> <?= htmlspecialchars(choices($selectedChoice), ENT_QUOTES, 'UTF-8') ?>
+      </div>
+    <?php else: ?>
+      <div class="wrong">
+        <strong>إجابتك:</strong> <?= htmlspecialchars(choices($selectedChoice), ENT_QUOTES, 'UTF-8') ?>
+      </div>
       <div><strong>الإجابة الصحيحة:</strong> <?= htmlspecialchars(choices($a['correct_choice'] ?? ''), ENT_QUOTES, 'UTF-8') ?></div>
     <?php endif; ?>
   </div>

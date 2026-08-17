@@ -33,22 +33,44 @@ try {
     $answerStmt = $connect->prepare("SELECT id, selected_choice, time_taken_seconds FROM answers WHERE result_id = ? AND question_id = ? ORDER BY id DESC LIMIT 1");
     $updateAnswer = $connect->prepare("UPDATE answers SET is_correct = ? WHERE id = ?");
 
+    $startedAt = !empty($res['started_at']) ? strtotime($res['started_at']) : false;
+    $allowedSeconds = max(0, (int)($res['allowed_seconds'] ?? 0));
+    $timeExpired = $startedAt !== false
+        && $allowedSeconds > 0
+        && time() >= ($startedAt + $allowedSeconds);
+
     $correctCount = 0;
     $totalTime = 0;
+    $unanswered = [];
 
     foreach ($questions as $q) {
         $answerStmt->execute([$result_id, (int)$q['id']]);
         $a = $answerStmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$a) continue;
+        if (!$a) {
+            $unanswered[] = (int)$q['id'];
+            continue;
+        }
 
         $selected = strtoupper(trim((string)($a['selected_choice'] ?? '')));
         $correct = strtoupper(trim((string)($q['correct_choice'] ?? '')));
+
+        if ($selected === '') {
+            $unanswered[] = (int)$q['id'];
+        }
+
         $isCorrect = ($selected !== '' && $correct !== '' && $selected === $correct) ? 1 : 0;
 
         if ($isCorrect) $correctCount++;
         $totalTime += max(0, (int)($a['time_taken_seconds'] ?? 0));
         $updateAnswer->execute([$isCorrect, (int)$a['id']]);
+    }
+
+    if (!empty($unanswered) && !$timeExpired) {
+        $connect->rollBack();
+        response_json(false, 'لا يمكن إنهاء الاختبار قبل الإجابة عن جميع الأسئلة.', [
+            'unanswered_count' => count($unanswered)
+        ]);
     }
 
     $totalQuestions = count($questions);

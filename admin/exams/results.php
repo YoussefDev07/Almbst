@@ -1,23 +1,23 @@
 <?php
 include "../config.php";
 
-$sql = "
-    SELECT 
-        r.id, 
-        a.fristname AS student_name, 
-        t.title AS exam_title, 
-        r.score, 
-        r.started_at, 
-        r.finished_at 
-    FROM 
-        results r 
-    JOIN 
-        exams t ON t.id = r.exam_id 
-    JOIN 
-        accounts a ON a.id = r.user_id
-    ORDER BY 
-        r.finished_at DESC
-";
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_result_id'])) {
+    $resultId = filter_var($_POST['delete_result_id'], FILTER_VALIDATE_INT);
+
+    if ($resultId !== false && $resultId > 0) {
+        try {
+            $deleteStmt = $connect->prepare("DELETE FROM results WHERE id = :id");
+            $deleteStmt->execute([':id' => $resultId]);
+
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+        } catch (PDOException $e) {
+            die("خطأ في حذف النتيجة: " . $e->getMessage());
+        }
+    }
+}
+
+$sql = "SELECT r.id, a.fristname AS student_name, t.title AS exam_title, r.score, r.started_at, r.finished_at FROM results r JOIN exams t ON t.id = r.exam_id JOIN accounts a ON a.id = r.user_id ORDER BY r.id DESC LIMIT 100";
 
 try {
     $stmt = $connect->query($sql);
@@ -44,7 +44,7 @@ body {
 }
 
 .container {
-    max-width: 1000px;
+    max-width: 1250px;
     margin: 40px auto;
     padding: 20px;
     background-color: #ffffff;
@@ -95,6 +95,21 @@ a:hover {
     text-decoration: underline;
 }
 
+.delete-btn {
+    border: none;
+    background-color: #e74c3c;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.delete-btn:hover {
+    background-color: #c0392b;
+}
+
 /* Media Queries */
 
 @media only screen and (max-width: 768px) {
@@ -123,20 +138,26 @@ a:hover {
 <div class="container">
     <h2>تتبع أداء الطلاب</h2>
     <table class="table">
-        <tr><th>الطالب</th><th>الاختبار</th><th>النتيجة</th><th>بدء</th><th>انتهى</th><th>عرض</th></tr>
+        <tr><th>الطالب</th><th>الاختبار</th><th>النتيجة</th><th>بدء</th><th>انتهى</th><th>عرض</th><th>إزالة النتيجة</th></tr>
         <?php if (count($rows) > 0): ?>
             <?php foreach($rows as $r): ?>
             <tr>
                 <td><?=htmlspecialchars($r['student_name'])?></td> 
                 <td><?=htmlspecialchars($r['exam_title'])?></td>
-                <td><?=htmlspecialchars($r['score'])?></td>
+                <td><?=htmlspecialchars($r['score'])?>%</td>
                 <td><?=htmlspecialchars($r['started_at'])?></td>
                 <td><?=htmlspecialchars($r['finished_at'])?></td>
                 <td><a href="../../exam/view_result.php?id=<?=htmlspecialchars($r['id'])?>">عرض</a></td>
+                <td>
+                    <form method="post" action="" onsubmit="return confirm('هل أنت متأكد من حذف هذه النتيجة نهائيًا؟');" style="margin:0;">
+                        <input type="hidden" name="delete_result_id" value="<?=htmlspecialchars($r['id'], ENT_QUOTES, 'UTF-8')?>">
+                        <button type="submit" class="delete-btn">إزالة النتيجة</button>
+                    </form>
+                </td>
             </tr>
             <?php endforeach; ?>
         <?php else: ?>
-            <tr><td colspan="6">لا توجد نتائج لعرضها حاليًا.</td></tr>
+            <tr><td colspan="7">لا توجد نتائج لعرضها حاليًا.</td></tr>
         <?php endif; ?>
     </table>
 </div>

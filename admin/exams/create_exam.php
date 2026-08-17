@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
 
       $cleanQuestions[] = [
+        'question_id' => (int)($q['question_id'] ?? 0),
         'q_image' => trim((string)($q['q_image'] ?? '')),
         'a' => trim((string)($q['a'] ?? '')),
         'b' => trim((string)($q['b'] ?? '')),
@@ -53,16 +54,118 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           }
           $id = $postedId;
 
-          $stmt = $connect->prepare('UPDATE exams SET title = ?, num_questions = ? WHERE id = ?');
+          $oldQuestionsStmt = $connect->prepare(
+            'SELECT id FROM questions WHERE exam_id = ? FOR UPDATE'
+          );
+          $oldQuestionsStmt->execute([$id]);
+          $oldQuestionRows = $oldQuestionsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+          $oldQuestionIds = [];
+          foreach ($oldQuestionRows as $oldRow) {
+            $oldQuestionIds[(int)$oldRow['id']] = true;
+          }
+
+          $stmt = $connect->prepare(
+            'UPDATE exams SET title = ?, num_questions = ? WHERE id = ?'
+          );
           $stmt->execute([$title, count($cleanQuestions), $id]);
 
-          $deleteAnswers = $connect->prepare(
-            'DELETE FROM answers WHERE question_id IN (SELECT id FROM questions WHERE exam_id = ?)'
-          );
-          $deleteAnswers->execute([$id]);
+          $updateQuestion = $connect->prepare('UPDATE questions SET q_image = ?, choice_a = ?, choice_b = ?, choice_c = ?, choice_d = ?, correct_choice = ?, position = ? WHERE id = ? AND exam_id = ?');
 
-          $deleteQuestions = $connect->prepare('DELETE FROM questions WHERE exam_id = ?');
-          $deleteQuestions->execute([$id]);
+          $insertQuestion = $connect->prepare('INSERT INTO questions (exam_id, q_image, choice_a, choice_b, choice_c, choice_d, correct_choice, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+
+          $keptQuestionIds = [];
+
+          foreach ($cleanQuestions as $pos => $q) {
+            $questionId = (int)($q['question_id'] ?? 0);
+
+            // تحديث سؤال موجود فقط إذا كان تابعًا لهذا الاختبار.
+            if ($questionId > 0 && isset($oldQuestionIds[$questionId])) {
+              $updateQuestion->execute([
+                $q['q_image'],
+                $q['a'],
+                $q['b'],
+                $q['c'],
+                $q['d'],
+                $q['correct'],
+                $pos + 1,
+                $questionId,
+                $id
+              ]);
+
+              $keptQuestionIds[$questionId] = true;
+            } else {
+              // سؤال جديد.
+              $insertQuestion->execute([
+                $id,
+                $q['q_image'],
+                $q['a'],
+                $q['b'],
+                $q['c'],
+                $q['d'],
+                $q['correct'],
+                $pos + 1
+              ]);
+
+              $newQuestionId = (int)$connect->lastInsertId();
+              if ($newQuestionId <= 0) {
+                throw new RuntimeException('تعذر إضافة سؤال جديد.');
+              }
+
+              $keptQuestionIds[$newQuestionId] = true;
+            }
+          }
+
+          // حذف الأسئلة التي أزيلت من الاختبار وإجاباتها السابقة.
+          $deleteAnswer = $connect->prepare(
+            'DELETE FROM answers WHERE question_id = ?'
+          );
+          $deleteQuestion = $connect->prepare(
+            'DELETE FROM questions WHERE id = ? AND exam_id = ?'
+          );
+
+          foreach ($oldQuestionIds as $oldQuestionId => $_unused) {
+            if (!isset($keptQuestionIds[$oldQuestionId])) {
+              $deleteAnswer->execute([$oldQuestionId]);
+              $deleteQuestion->execute([$oldQuestionId, $id]);
+            }
+          }
+
+          $recalculateAnswers = $connect->prepare("UPDATE answers SET is_correct = CASE WHEN UPPER(TRIM(COALESCE(selected_choice, ''))) = (SELECT UPPER(TRIM(correct_choice)) FROM questions WHERE questions.id = answers.question_id AND questions.exam_id = ?) THEN 1 ELSE 0 END WHERE question_id IN (SELECT id FROM questions WHERE exam_id = ?)");
+          $recalculateAnswers->execute([$id, $id]);
+
+          $resultsStmt = $connect->prepare(
+            'SELECT id FROM results WHERE exam_id = ?'
+          );
+          $resultsStmt->execute([$id]);
+          $resultIds = $resultsStmt->fetchAll(PDO::FETCH_COLUMN);
+
+          $countCorrect = $connect->prepare(
+            'SELECT COUNT(*)
+               FROM answers a
+               INNER JOIN questions q ON q.id = a.question_id
+              WHERE a.result_id = ?
+                AND q.exam_id = ?
+                AND a.is_correct = 1'
+          );
+
+          $updateScore = $connect->prepare(
+            'UPDATE results SET score = ? WHERE id = ? AND exam_id = ?'
+          );
+
+          $questionCount = count($cleanQuestions);
+
+          foreach ($resultIds as $resultId) {
+            $countCorrect->execute([(int)$resultId, $id]);
+            $correctCount = (int)$countCorrect->fetchColumn();
+
+            $newScore = $questionCount > 0
+              ? (int)round(($correctCount / $questionCount) * 100)
+              : 0;
+
+            $updateScore->execute([$newScore, (int)$resultId, $id]);
+          }
+
         } else {
           $stmt = $connect->prepare('INSERT INTO exams (title, num_questions) VALUES (?, ?)');
           $stmt->execute([$title, count($cleanQuestions)]);
@@ -70,25 +173,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           if ($id <= 0) {
             throw new RuntimeException('تعذر إنشاء الاختبار في قاعدة البيانات.');
           }
-        }
 
-        $ins = $connect->prepare(
-          'INSERT INTO questions
-           (exam_id, q_image, choice_a, choice_b, choice_c, choice_d, correct_choice, position)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-        );
+          $ins = $connect->prepare(
+            'INSERT INTO questions
+             (exam_id, q_image, choice_a, choice_b, choice_c, choice_d, correct_choice, position)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+          );
 
-        foreach ($cleanQuestions as $pos => $q) {
-          $ins->execute([
-            $id,
-            $q['q_image'],
-            $q['a'],
-            $q['b'],
-            $q['c'],
-            $q['d'],
-            $q['correct'],
-            $pos + 1
-          ]);
+          foreach ($cleanQuestions as $pos => $q) {
+            $ins->execute([
+              $id,
+              $q['q_image'],
+              $q['a'],
+              $q['b'],
+              $q['c'],
+              $q['d'],
+              $q['correct'],
+              $pos + 1
+            ]);
+          }
         }
 
         $connect->commit();
@@ -348,6 +451,7 @@ hr {
 
 <script>
 function makeQ(i, data = {}) {
+  data.question_id = Number(data.question_id || 0);
   data.q_image = data.q_image || '';
   data.a = data.a || '';
   data.b = data.b || '';
@@ -361,6 +465,7 @@ function makeQ(i, data = {}) {
     <input type="file" accept="image/*" class="q_image"><br>
     ${data.q_image ? `<img src="${data.q_image}" class="preview">` : ''}
     <input type="hidden" class="q_image_path" value="${data.q_image}">
+    <input type="hidden" class="q_id" value="${data.question_id}">
     <br>
     <input type="hidden" class="a" value="أ">
     <input type="hidden" class="b" value="ب">
@@ -442,7 +547,8 @@ $('#createForm').submit(function(e){
   let isValid = true;
 
   $('#questionsContainer .q').each(function(){
-    const q_image = $(this).find(".q_image_path").val();
+    const question_id = Number($(this).find(".q_id").val() || 0);
+    const q_image = $(this).find(".q_image_path").val() || '';
     const a = $(this).find(".a").val().trim() || "أ";
     const b = $(this).find(".b").val().trim() || "ب";
     const c = $(this).find(".c").val().trim() || "ج";
@@ -454,7 +560,15 @@ $('#createForm').submit(function(e){
       alert(`يرجى ملء جميع الحقول ورفع صورة للسؤال رقم ${$(this).data('i')}`);
       return false;
     }
-    questions.push({q_image,a,b,c,d,correct});
+    questions.push({
+      question_id: question_id,
+      q_image: q_image,
+      a: a,
+      b: b,
+      c: c,
+      d: d,
+      correct: correct
+    });
   });
 
   if (!isValid) {
@@ -472,11 +586,12 @@ $('#createForm').submit(function(e){
 });
 
 // تحميل الأسئلة الموجودة عند التعديل
-let existing = <?= json_encode($qs) ?>;
+let existing = <?= json_encode($qs, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 if(existing && existing.length>0){
   $('#questionsContainer').empty();
   existing.forEach((q,i)=>{
     const qData = {
+      question_id: q.id,
       q_image: q.q_image,
       a: q.choice_a,
       b: q.choice_b,
