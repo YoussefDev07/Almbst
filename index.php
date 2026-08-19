@@ -29,6 +29,7 @@
   <!--link-->
    <link rel="canonical" href="http://localhost/www/%d8%a7%d9%84%d9%85%d8%a8%d8%b3%d8%b7/"/>
    <link rel="icon" type="image/png" href="./assets/images/logo.png"/>
+   <link rel="preload" as="font" href="./assets/font/el-messiri.ttf" crossorigin/>
    <link rel="stylesheet" type="text/css" href="./assets/css/style.css"/>
    <link rel="stylesheet" media="all" href="./assets/libs/css/fontawesome.css"/>
    <link rel="stylesheet" href="./assets/libs/css/animate.css"/>
