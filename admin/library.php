@@ -131,7 +131,7 @@ usort($pdfFiles, static function (array $a, array $b): int {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($page_title); ?></title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" media="all" href="../assets/libs/css/fontawesome.css"/>
 
     <style>
@@ -376,56 +376,6 @@ usort($pdfFiles, static function (array $a, array $b): int {
             <div class="library-loading-text">جارٍ رفع الملف، يرجى الانتظار...</div>
         </div>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const form = document.getElementById('libraryUploadForm');
-            const input = document.getElementById('pdf_file');
-            const button = document.getElementById('libraryUploadBtn');
-            const label = button ? button.querySelector('.library-submit-label') : null;
-            const loading = document.getElementById('libraryLoading');
-            const maxSize = 10 * 1024 * 1024;
-
-            if (!form || !input || !button || !loading) {
-                return;
-            }
-
-            form.addEventListener('submit', function (event) {
-                const file = input.files && input.files.length ? input.files[0] : null;
-
-                if (!file) {
-                    event.preventDefault();
-                    alert('يرجى اختيار ملف PDF أولاً.');
-                    return;
-                }
-
-                const fileName = file.name || '';
-                const extension = fileName.split('.').pop().toLowerCase();
-
-                if (extension !== 'pdf' || file.type !== 'application/pdf') {
-                    event.preventDefault();
-                    alert('مسموح برفع ملفات PDF فقط.');
-                    input.value = '';
-                    return;
-                }
-
-                if (file.size >= maxSize) {
-                    event.preventDefault();
-                    alert('حجم الملف يجب أن يكون أقل من 10 ميجابايت.');
-                    input.value = '';
-                    return;
-                }
-
-                loading.classList.add('is-visible');
-                loading.setAttribute('aria-hidden', 'false');
-                button.disabled = true;
-
-                if (label) {
-                    label.textContent = 'جارٍ الرفع...';
-                }
-            });
-        });
-    </script>
 
 </body>
 </html>
