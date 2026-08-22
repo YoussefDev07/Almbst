@@ -1,4 +1,7 @@
-new WOW().init();
+// Initialize optional page animation support when the vendor library is loaded.
+if (typeof WOW !== "undefined") {
+  new WOW().init();
+}
 const date = new Date();
 
 // account
@@ -62,7 +65,52 @@ function logout() {
   location.assign("./hooks/logout.php");
 }
 
+// Copy an exam URL from the administration exam list.
+function copyExamLink(examId) {
+  const url = `${window.location.origin}/exam/take_exam.php?exam_id=${examId}`;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => alert("تم النسخ"));
+  }
+}
+
+// Validate the library upload before showing its blocking progress state.
+function setupLibraryUpload() {
+  const form = document.getElementById("libraryUploadForm");
+  const input = document.getElementById("pdf_file");
+  const button = document.getElementById("libraryUploadBtn");
+  const label = button ? button.querySelector(".library-submit-label") : null;
+  const loading = document.getElementById("libraryLoading");
+  const maxSize = 10 * 1024 * 1024;
+
+  if (!form || !input || !button || !loading) return;
+
+  form.addEventListener("submit", event => {
+    const file = input.files && input.files[0];
+    const extension = file ? file.name.split(".").pop().toLowerCase() : "";
+
+    if (!file) {
+      event.preventDefault();
+      alert("يرجى اختيار ملف PDF أولاً.");
+    } else if (extension !== "pdf" || file.type !== "application/pdf") {
+      event.preventDefault();
+      alert("مسموح برفع ملفات PDF فقط.");
+      input.value = "";
+    } else if (file.size >= maxSize) {
+      event.preventDefault();
+      alert("حجم الملف يجب أن يكون أقل من 10 ميجابايت.");
+      input.value = "";
+    } else {
+      loading.classList.add("is-visible");
+      loading.setAttribute("aria-hidden", "false");
+      button.disabled = true;
+      if (label) label.textContent = "جارٍ الرفع...";
+    }
+  });
+}
+
 $(window).ready(function(){
+
+setupLibraryUpload();
 
 // slider
 
