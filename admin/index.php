@@ -47,9 +47,9 @@ $total_sections = $db->query("SELECT COUNT(*) FROM courses_sections")->fetchColu
                     <span>📑</span>
                     <span>درجات المختبرين</span>
                 </a>
-                <a href="./codes.php" class="action-btn">
-                    <span>🔢</span>
-                    <span>إدارة رموز التفعيل</span>
+                <a href="./student_analytics.php" class="action-btn">
+                    <span>🧮</span>
+                    <span>إحصائيات المختبرين</span>
                 </a>
             </div>
             <br>
@@ -61,6 +61,10 @@ $total_sections = $db->query("SELECT COUNT(*) FROM courses_sections")->fetchColu
                 <a href="./library.php" class="action-btn">
                     <span>📁</span>
                     <span>ملفات المكتبة</span>
+                </a>
+                <a href="./codes.php" class="action-btn">
+                    <span>🔢</span>
+                    <span>إدارة رموز التفعيل</span>
                 </a>
             </div>
         </div>
