@@ -128,7 +128,9 @@ $avatar = $selected_student ? trim((string) ($selected_student['avatar'] ?? ''))
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo e($page_title); ?></title>
     <link rel="stylesheet" href="style.css">
+    <script src="../assets/libs/js/jquery.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="text/javascript" src="./script.js" defer></script>
     <style>
      .student-select-card{margin-bottom:24px}.student-picker{position:relative}.student-picker-button{width:100%;min-height:68px;padding:10px 14px;border:2px solid #e2e8f0;border-radius:12px;background:#fff;color:#2d3748;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;text-align:right}.student-picker-button.open{border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,.08)}.student-picker-current{display:flex;align-items:center;gap:12px;min-width:0}.student-picker-avatar,.student-option-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:0 0 44px;background:linear-gradient(135deg,#edf2ff,#e9d8fd);border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.08)}.student-picker-avatar-fallback,.student-option-avatar-fallback{display:flex;align-items:center;justify-content:center;color:#667eea;font-weight:700}.student-picker-text,.student-option-content{min-width:0}.student-picker-name,.student-option-name{display:block;font-weight:700;color:#2d3748;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.student-picker-email,.student-option-email{display:block;margin-top:3px;color:#718096;font-size:12px;direction:ltr;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.student-picker-arrow{font-size:18px;color:#718096;transition:.2s}.student-picker-button.open .student-picker-arrow{transform:rotate(180deg)}.student-picker-menu{position:absolute;top:calc(100% + 8px);right:0;left:0;z-index:50;display:none;max-height:340px;overflow-y:auto;padding:8px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 12px 35px rgba(15,23,42,.15)}.student-picker-menu.open{display:block}.student-option{width:100%;border:0;background:transparent;display:flex;align-items:center;gap:12px;padding:10px;border-radius:9px;cursor:pointer;text-align:right}.student-option:hover,.student-option.selected{background:#f7fafc}.student-option-content{flex:1}.student-option-check{color:#667eea;font-weight:800;opacity:0}.student-option.selected .student-option-check{opacity:1}.student-profile{display:flex;align-items:center;gap:18px;margin-bottom:25px}.student-avatar-large{width:86px;height:86px;border-radius:50%;object-fit:cover;flex:0 0 86px;background:linear-gradient(135deg,#edf2ff,#e9d8fd);border:3px solid #fff;box-shadow:0 4px 15px rgba(0,0,0,.10)}.student-avatar-fallback{display:flex;align-items:center;justify-content:center;color:#667eea;font-size:28px;font-weight:700}.student-profile h2{margin:0 0 4px;color:#2d3748}.student-email{color:#718096;direction:ltr;text-align:right;word-break:break-word}.student-id{margin-top:4px;color:#a0aec0;font-size:13px;direction:ltr;text-align:right}.stats-grid.student-stats{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:30px}.student-stats .stat-card{padding:22px 18px}.student-stats .stat-number{font-size:34px;margin-bottom:4px}.student-stats .stat-label{margin-bottom:0}.stat-subtitle{margin-top:6px;color:#a0aec0;font-size:12px}.charts-grid{display:grid;grid-template-columns:1fr;gap:22px;margin-bottom:30px}.chart-card{background:#fff;border-radius:15px;padding:20px;box-shadow:0 4px 15px rgba(15,23,42,.06);border:1px solid #edf2f7}.chart-card h3{margin:0 0 16px;color:#2d3748}.chart-wrap{position:relative;height:300px}.table-wrapper{overflow-x:auto}.results-table{width:100%;border-collapse:collapse;min-width:900px}.results-table th,.results-table td{padding:13px 12px;border-bottom:1px solid #edf2f7;text-align:right;vertical-align:middle}.results-table th{background:#f7fafc;color:#4a5568;font-weight:700}.results-table td{color:#4a5568}.score-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-weight:700;background:#ebf4ff;color:#434190;direction:ltr}.exam-link{color:#4c51bf;text-decoration:none;font-weight:700}.exam-link:hover{text-decoration:underline}.muted{color:#a0aec0}.empty-state{padding:35px 20px;text-align:center;color:#718096}.hint{color:#718096;font-size:13px;margin-top:8px}.welcome-card{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:24px;border-radius:15px;margin-bottom:25px;box-shadow:0 4px 15px rgba(102,126,234,.20)}.welcome-card h2{margin:0 0 7px;font-size:22px}.welcome-card p{margin:0;opacity:.9}@media(max-width:600px){.student-profile{align-items:flex-start}.student-avatar-large{width:68px;height:68px;flex-basis:68px}.student-profile h2{font-size:20px}}
     </style>
@@ -143,7 +145,7 @@ $avatar = $selected_student ? trim((string) ($selected_student['avatar'] ?? ''))
         <div class="alert alert-error"><?php echo e($error); ?></div>
     <?php endif; ?>
 
-    <div class="form-card student-select-card">
+    <div class="form-card student-select-card noPrint">
         <h2>اختيار الطالب</h2>
         <div class="form-group" style="margin-bottom:0;">
             <label for="studentPickerButton">الطلاب</label>
@@ -177,9 +179,15 @@ $avatar = $selected_student ? trim((string) ($selected_student['avatar'] ?? ''))
                     <?php endforeach; ?>
                 </div>
             </div>
-            <div class="hint">اضغط على القائمة لاختيار الطالب، وستظهر صورته واسمه مباشرة بدل قائمة select التقليدية.</div>
         </div>
     </div>
+
+   <!--print-page-->
+    <?php if ($selected_student): ?>
+     <div class="print-page noPrint">
+      <button type="button" id="printPage">تحميل الإحصائية على هيئة ملف PDF</button>
+     </div>
+    <?php endif; ?>
 
     <?php if ($selected_student): ?>
         <div class="table-card">
@@ -220,7 +228,7 @@ $avatar = $selected_student ? trim((string) ($selected_student['avatar'] ?? ''))
                 <div class="stat-card">
                     <div class="stat-icon">🏆</div>
                     <div class="stat-number">
-                        <?php echo $summary['best'] !== null ? number_format($summary['best'], 1) . '%' : '—'; ?>
+                        <?php echo $summary['best'] !== null ? $summary['best'] . '%' : '—'; ?>
                     </div>
                     <div class="stat-label">أفضل نتيجة</div>
                 </div>
@@ -250,7 +258,6 @@ $avatar = $selected_student ? trim((string) ($selected_student['avatar'] ?? ''))
                             <tr>
                                 <th>الاختبار</th>
                                 <th>عدد الأسئلة</th>
-                                <th>النتيجة المسجلة</th>
                                 <th>النسبة</th>
                                 <th>الوقت المستغرق</th>
                                 <th>تاريخ الإنهاء</th>
@@ -265,16 +272,7 @@ $avatar = $selected_student ? trim((string) ($selected_student['avatar'] ?? ''))
                                     </a>
                                 </td>
                                 <td><?php echo (int) $row['num_questions']; ?></td>
-                                <td><?php echo e($row['score']); ?></td>
-                                <td>
-                                    <?php if ($row['percentage'] !== null): ?>
-                                        <span class="score-pill">
-                                            <?php echo number_format($row['percentage'], 1); ?>%
-                                        </span>
-                                    <?php else: ?>
-                                        <span class="muted">غير قابلة للتحويل</span>
-                                    <?php endif; ?>
-                                </td>
+                                <td><span class="score-pill"><?php echo e($row['score']); ?>%</span></td>
                                 <td style="direction:ltr;text-align:right;"><?php echo e($row['time']); ?></td>
                                 <td>
                                     <?php if ($row['finished_at']): ?>

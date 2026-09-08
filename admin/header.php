@@ -1,4 +1,4 @@
-<header class="admin-header">
+<header class="admin-header noPrint">
  <div class="header-container">
   <div class="logo">
    <h2>🎓 لوحة التحكم</h2>
