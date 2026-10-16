@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
  <url>
   <loc>http://localhost/www/%d8%a7%d9%84%d9%85%d8%a8%d8%b3%d8%b7</loc>
-  <lastmod>2026-08-19</lastmod>
+  <lastmod>2026-10-16</lastmod>
   <changefreq>yearly</changefreq>
   <priority>1.0</priority>
  </url>
@@ -30,9 +30,15 @@
   <changefreq>always</changefreq>
   <priority>0.2</priority>
  </url>
-<url>
+ <url>
   <loc>http://localhost/www/%d8%a7%d9%84%d9%85%d8%a8%d8%b3%d8%b7/library.php</loc>
   <lastmod>2026-08-12</lastmod>
+  <changefreq>always</changefreq>
+  <priority>0.5</priority>
+ </url>
+ <url>
+  <loc>http://localhost/www/%d8%a7%d9%84%d9%85%d8%a8%d8%b3%d8%b7/top_students.php</loc>
+  <lastmod>2026-10-16</lastmod>
   <changefreq>always</changefreq>
   <priority>0.5</priority>
  </url>

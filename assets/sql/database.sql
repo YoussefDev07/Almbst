@@ -53,3 +53,15 @@ CREATE TABLE activate_codes (
   id int(22) PRIMARY KEY AUTO_INCREMENT,
   code varchar(13)
 );
+
+-- `top_students`
+
+CREATE TABLE IF NOT EXISTS top_students (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    student_name VARCHAR(180) NOT NULL,
+    score VARCHAR(100) NOT NULL,
+    image_filename VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_top_students_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

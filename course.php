@@ -76,6 +76,7 @@
         <a href="./index.php#courses">الدورات</a>
         <a href="./index.php#book">كتاب المبسط</a>
         <a href="./library.php">المكتبة</a>
+        <a href="./top_students.php">المتفوقين</a>
        </nav>
       <?php include "./includes/account.php"; ?>
       <!--slider-->
@@ -88,6 +89,7 @@
           <li><a href="./index.php#courses">الدورات</a></li>
           <li><a href="./index.php#book">كتاب المبسط</a></li>
           <li><a href="./library.php">المكتبة</a></li>
+          <li><a href="./top_students.php">المتفوقين</a></li>
          </ul>
          <?php include "./includes/account.php"; ?>
         </nav>
