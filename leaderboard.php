@@ -5,7 +5,6 @@ require_once __DIR__ . '/includes/leaderboard_helpers.php';
 $loadError = false;
 $students = [];
 try {
-    top_students_ensure_table($connect);
     $stmt = $connect->query('SELECT id, student_name, score, image_filename FROM top_students ORDER BY id DESC');
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) {
