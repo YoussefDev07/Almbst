@@ -260,6 +260,7 @@ function e(string $value): string
             <a href="./index.php#courses">الدورات</a>
             <a href="./index.php#book">كتاب المبسط</a>
             <a>المكتبة</a>
+            <a href="./leaderboard.php">لوحة الشرف</a>
         </nav>
 
         <?php include "./includes/account.php"; ?>
@@ -274,6 +275,7 @@ function e(string $value): string
                     <li><a href="./index.php#courses">الدورات</a></li>
                     <li><a href="./index.php#book">كتاب المبسط</a></li>
                     <li><a>المكتبة</a></li>
+                    <li><a href="./leaderboard.php">لوحة الشرف</a></li>
                 </ul>
                 <?php include "./includes/account.php"; ?>
             </nav>

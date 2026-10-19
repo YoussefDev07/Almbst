@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/master/connect.php';
-require_once __DIR__ . '/includes/top_students_helpers.php';
+require_once __DIR__ . '/includes/leaderboard_helpers.php';
 
 $loadError = false;
 $students = [];
@@ -9,7 +9,7 @@ try {
     $stmt = $connect->query('SELECT id, student_name, score, image_filename FROM top_students ORDER BY id DESC');
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) {
-    error_log('Top students public page error: ' . $e->getMessage());
+    error_log('leaderboard public page error: ' . $e->getMessage());
     $loadError = true;
 }
 ?>
@@ -19,7 +19,7 @@ try {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#ffffff">
-    <meta name="description" content="قائمة المتفوقين ودرجاتهم في المبسط في القدرات الكمي.">
+    <meta name="description" content="لوحة الشرف في المبسط في القدرات الكمي.">
     <link rel="icon" type="image/png" href="./assets/images/logo.png">
     <link rel="preload" as="font" href="./assets/fonts/el-messiri.ttf" crossorigin>
     <link rel="stylesheet" type="text/css" href="./assets/css/style.css">
@@ -56,27 +56,42 @@ try {
 </head>
 <body>
 <div class="_container">
-    <header>
-        <nav class="logo"><a href="./"><img title="المبسط" src="./assets/images/logo.png" alt="المبسط"></a></nav>
-        <nav class="navagators">
-            <a href="./">الرئيسية</a><a href="./#courses">الدورات</a><a href="./#book">كتاب المبسط</a>
-            <a href="./library.php">المكتبة</a><a href="./top_students.php" aria-current="page">المتفوقين</a>
+   <!--header-->
+     <header>
+      <!--logo-->
+       <nav class="logo">
+        <a href="./"><img title="المبسط" src="./assets/images/logo.png" alt="Almbst"></a>
+       </nav>
+      <!--navagators-->
+       <nav class="navagators">
+        <a href="./">الرئيسية</a>
+        <a href="#courses">الدورات</a>
+        <a href="#book">كتاب المبسط</a>
+        <a href="./library.php">المكتبة</a>
+        <a>لوحة الشرف</a>
+       </nav>
+      <?php include "./includes/account.php"; ?>
+      <!--slider-->
+       <button type="menu" id="slider"><i class="fas fa-bars"></i></button>
+       <div class="slider">
+        <nav>
+         <button type="close" id="closeSlider"><i class="fas fa-times"></i></button>
+         <ul>
+          <li><a href="./">الرئيسية</a></li>
+          <li><a href="#courses">الدورات</a></li>
+          <li><a href="#book">كتاب المبسط</a></li>
+          <li><a href="./library.php">المكتبة</a></li>
+          <li><a>لوحة الشرف</a></li>
+         </ul>
+         <?php include "./includes/account.php"; ?>
         </nav>
-        <?php include "./includes/account.php"; ?>
-        <button type="menu" id="slider"><i class="fas fa-bars"></i></button>
-        <div class="slider"><nav>
-            <button type="close" id="closeSlider"><i class="fas fa-times"></i></button>
-            <ul>
-                <li><a href="./">الرئيسية</a></li><li><a href="./#courses">الدورات</a></li><li><a href="./#book">كتاب المبسط</a></li>
-                <li><a href="./library.php">المكتبة</a></li><li><a href="./top_students.php">المتفوقين</a></li>
-            </ul>
-            <?php include "./includes/account.php"; ?>
-        </nav></div>
-    </header>
-    <div class="fake-header"></div>
+       </div>
+     </header>
+    <!--fake-header-->
+     <div class="fake-header"></div>
     <main class="top-students-page">
         <div class="top-students-container">
-            <h1 class="top-students-title">المتفوقين</h1>
+            <h1 class="top-students-title">لوحة الشرف</h1>
             <div class="title-underline"><div><span></span></div></div>
             <p class="top-students-intro">نحتفي بطلابنا المتفوقين ونشارككم درجاتهم وإنجازاتهم.</p>
             <?php if (!$loadError && $students): ?>
@@ -91,7 +106,7 @@ try {
                             <div class="top-student-content">
                                 <div class="top-student-score-label">الدرجة</div>
                                 <div class="top-student-score"><?= top_students_escape($student['score']) ?></div>
-                                <a class="top-student-view" href="./uploads/top_students/<?= rawurlencode($student['image_filename']) ?>" target="_blank" rel="noopener noreferrer">
+                                <a class="top-student-view" href="./uploads/leaderboard/<?= rawurlencode($student['image_filename']) ?>" target="_blank" rel="noopener noreferrer">
                                     <i class="fas fa-image" aria-hidden="true"></i> عرض صورة الدرجة
                                 </a>
                             </div>
@@ -106,7 +121,10 @@ try {
         </div>
     </main>
     <?php include "./includes/footer.html"; ?>
-    <div class="whatsapp" title="التواصل عبر واتساب"><i class="fab fa-whatsapp"></i></div>
+       <!--whatsapp-->
+        <div class="whatsapp" title="التواصل عبر واتساب">
+         <i class="fab fa-whatsapp"></i>
+        </div>
 </div>
 </body>
 </html>

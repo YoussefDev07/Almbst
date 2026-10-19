@@ -42,7 +42,7 @@ function top_students_upload_image(array $file, bool $optional = false): ?string
     }
 
     $rootDirectory = dirname(__DIR__);
-    $uploadDirectory = $rootDirectory . '/uploads/top_students';
+    $uploadDirectory = $rootDirectory . '/uploads/leaderboard';
     if (!is_dir($uploadDirectory) && !mkdir($uploadDirectory, 0755, true) && !is_dir($uploadDirectory)) {
         throw new RuntimeException('تعذر إنشاء مجلد حفظ الصور.');
     }
@@ -68,7 +68,7 @@ function top_students_delete_image(?string $filename): void
         return;
     }
 
-    $path = dirname(__DIR__) . '/uploads/top_students/' . $filename;
+    $path = dirname(__DIR__) . '/uploads/leaderboard/' . $filename;
     if (is_file($path)) {
         @unlink($path);
     }
