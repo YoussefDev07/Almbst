@@ -22,6 +22,17 @@ function examStatsInitials($firstName, $lastName): string
     return ($first . $last) !== '' ? ($first . $last) : 'ط';
 }
 
+function examStatsCsvSafe($value): string
+{
+    $value = (string) $value;
+
+    if (preg_match('/^[\s\x00-\x1F]*[=+\-@]/u', $value)) {
+        return "'" . $value;
+    }
+
+    return $value;
+}
+
 function examStatsTimeAgo($datetime) {
     if (empty($datetime)) {
         return 'لا توجد محاولة';
@@ -156,6 +167,56 @@ if ($examId === false || $examId === null) {
 }
 
 $examTitle = $exam ? (string) $exam['title'] : 'إحصائيات الاختبار';
+
+if (($_GET['export'] ?? '') === 'csv' && $exam && $pageError === '') {
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+
+    $filename = rawurlencode($examTitle) . "-" . date("YmdHis") . ".csv";
+    header('Content-Type: text/csv; charset=UTF-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Cache-Control: no-store, no-cache, must-revalidate');
+    header('Pragma: no-cache');
+
+    $output = fopen('php://output', 'w');
+    if ($output === false) {
+        http_response_code(500);
+        exit('تعذر إنشاء ملف التصدير.');
+    }
+
+    fwrite($output, "\xEF\xBB\xBF");
+
+    fputcsv($output, [
+        'اسم الطالب',
+        'إجمالي المحاولات',
+        'أعلى نتيجة',
+        'تاريخ آخر محاولة',
+    ]);
+
+    foreach ($students as $student) {
+        $firstName = (string) ($student['fristname'] ?? '');
+        $lastName = (string) ($student['lastname'] ?? '');
+        $studentName = trim($firstName . ' ' . $lastName);
+        if ($studentName === '') {
+            $studentName = 'طالب بدون اسم';
+        }
+
+        $bestScore = $student['best_score'] !== null
+            ? (float) $student['best_score']
+            : '';
+
+        fputcsv($output, [
+            examStatsCsvSafe($studentName),
+            (int) ($student['completed_count'] ?? 0),
+            $bestScore . "%",
+            examStatsCsvSafe((string) ($student['last_attempt_at'] ?? '')),
+        ]);
+    }
+
+    fclose($output);
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -185,6 +246,9 @@ $examTitle = $exam ? (string) $exam['title'] : 'إحصائيات الاختبا�
         .students-card-heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
         .students-card-heading h2 { margin: 0; }
         .students-count-label { color: #718096; font-size: 13px; }
+        .students-card-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .export-button { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 9px; background: #e6fffa; color: #276749; text-decoration: none; font-weight: 700; transition: background .2s ease; }
+        .export-button:hover { background: #b2f5ea; }
         .table-scroll { overflow-x: auto; }
         .students-table { width: 100%; min-width: 760px; border-collapse: collapse; }
         .students-table th, .students-table td { padding: 13px 12px; border-bottom: 1px solid #edf2f7; text-align: right; vertical-align: middle; }
@@ -230,6 +294,7 @@ $examTitle = $exam ? (string) $exam['title'] : 'إحصائيات الاختبا�
     <?php elseif ($exam): ?>
         <section class="exam-info-card">
             <h2>معلومات الاختبار</h2>
+            <div class="exam-info-grid">
                 <div class="exam-info-item">
                     <span class="exam-info-label">عدد الأسئلة</span>
                     <span class="exam-info-value"><?php echo (int) $exam['actual_questions']; ?></span>
@@ -260,7 +325,12 @@ $examTitle = $exam ? (string) $exam['title'] : 'إحصائيات الاختبا�
         <section class="students-card">
             <div class="students-card-heading">
                 <h2>الطلاب المشاركون في الاختبار</h2>
-                <span class="students-count-label"><?php echo number_format(count($students)); ?> طالب</span>
+                <div class="students-card-actions">
+                    <span class="students-count-label"><?php echo number_format(count($students)); ?> طالب</span>
+                    <a class="export-button" href="?<?php echo examStatsEscape(http_build_query(['id' => $examId, 'export' => 'csv'])); ?>">
+                        &#8659; تصدير بيانات الطلاب Exel
+                    </a>
+                </div>
             </div>
 
             <?php if (!empty($students)): ?>
