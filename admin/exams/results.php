@@ -145,8 +145,8 @@ a:hover {
                 <td><?=htmlspecialchars($r['student_name'])?></td> 
                 <td><?=htmlspecialchars($r['exam_title'])?></td>
                 <td><?=htmlspecialchars($r['score'])?>%</td>
-                <td><?=htmlspecialchars($r['started_at'])?></td>
-                <td><?=htmlspecialchars($r['finished_at'])?></td>
+                <td><?=str_replace("-", "/", htmlspecialchars($r['started_at']))?></td>
+                <td><?=str_replace("-", "/", htmlspecialchars($r['finished_at']))?></td>
                 <td><a href="../../exam/view_result.php?id=<?=htmlspecialchars($r['id'])?>">عرض</a></td>
                 <td>
                     <form method="post" action="" onsubmit="return confirm('هل أنت متأكد من حذف هذه النتيجة نهائيًا؟');" style="margin:0;">

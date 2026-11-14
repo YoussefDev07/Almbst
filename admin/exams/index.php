@@ -78,7 +78,7 @@ h2 {
   background-color: #f0f8ff;
 }
 
-button {
+button, .pill {
   background-color: #28a745;
   color: white;
   border: none;
@@ -86,6 +86,10 @@ button {
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
+}
+
+.pill {
+  background-color: #007bff;
 }
 
 button:hover {
@@ -97,7 +101,7 @@ a {
   text-decoration: none;
 }
 
-a:hover {
+a:not(.pill):hover {
   text-decoration: underline;
 }
 
@@ -123,7 +127,7 @@ a:hover {
     font-size: 15px;
   }
 
-  button {
+  button, .pill {
     padding: 6px 12px;
     font-size: 14px;
   }
@@ -143,8 +147,9 @@ a:hover {
       <td><?=$test['num_questions']?></td>
       <td>
         <a href="./create_exam.php?id=<?=$test['id']?>">تعديل</a> |
-        <a href="./delete_exam.php?id=<?=$test['id']?>" onclick="return confirm('سوف يتم حذف الاختبار!')">حذف</a> |
-        <button onclick="copyExamLink(<?= $test["id"]; ?>)">نسخ رابط</button>
+        <a style="color:red" href="./delete_exam.php?id=<?=$test['id']?>" onclick="return confirm('سوف يتم حذف الاختبار!')">حذف</a> |
+        <button onclick="copyExamLink(<?= $test["id"]; ?>)">نسخ رابط</button> |
+        <a class="pill" style="padding-bottom:12px" href="./statistics.php?id=<?=$test['id']?>">الإحصائيات</a>
       </td>
     </tr>
     <?php endforeach; ?>
@@ -152,7 +157,7 @@ a:hover {
 </div>
 <script>
 function copyExamLink(examID) {
-  navigator.clipboard.writeText(`https://localhost/www/المبسط/exam/take_exam.php?exam_id=${examID}`);
+  navigator.clipboard.writeText(`http://localhost/www/المبسط/exam/take_exam.php?exam_id=${examID}`);
   alert("تم النسخ");
 }
 </script>
