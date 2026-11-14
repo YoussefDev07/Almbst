@@ -169,17 +169,20 @@ if ($examId === false || $examId === null) {
 $examTitle = $exam ? (string) $exam['title'] : 'إحصائيات الاختبار';
 
 if (($_GET['export'] ?? '') === 'csv' && $exam && $pageError === '') {
+
     while (ob_get_level() > 0) {
         ob_end_clean();
     }
 
     $filename = rawurlencode($examTitle) . "-" . date("YmdHis") . ".csv";
+
     header('Content-Type: text/csv; charset=UTF-8');
     header('Content-Disposition: attachment; filename="' . $filename . '"');
     header('Cache-Control: no-store, no-cache, must-revalidate');
     header('Pragma: no-cache');
 
     $output = fopen('php://output', 'w');
+
     if ($output === false) {
         http_response_code(500);
         exit('تعذر إنشاء ملف التصدير.');
@@ -189,29 +192,61 @@ if (($_GET['export'] ?? '') === 'csv' && $exam && $pageError === '') {
 
     fputcsv($output, [
         'اسم الطالب',
-        'إجمالي المحاولات',
-        'أعلى نتيجة',
-        'تاريخ آخر محاولة',
+        'النتيجة',
+        'تاريخ البدء',
+        'الوقت المستغرق'
     ]);
 
-    foreach ($students as $student) {
-        $firstName = (string) ($student['fristname'] ?? '');
-        $lastName = (string) ($student['lastname'] ?? '');
-        $studentName = trim($firstName . ' ' . $lastName);
-        if ($studentName === '') {
-            $studentName = 'طالب بدون اسم';
-        }
+    $attemptsStmt = $db->prepare(
+        'SELECT
+            r.score,
+            r.started_at,
+            r.finished_at,
+            a.fristname,
+            a.lastname
+        FROM results r
+        LEFT JOIN accounts a ON a.id = r.user_id
+        WHERE r.exam_id = :exam_id
+          AND r.finished_at IS NOT NULL
+        ORDER BY r.finished_at DESC'
+    );
 
-        $bestScore = $student['best_score'] !== null
-            ? (float) $student['best_score']
-            : '';
+    $attemptsStmt->execute([
+        ':exam_id' => $examId
+    ]);
 
-        fputcsv($output, [
-            examStatsCsvSafe($studentName),
-            (int) ($student['completed_count'] ?? 0),
-            $bestScore . "%",
-            examStatsCsvSafe((string) ($student['last_attempt_at'] ?? '')),
-        ]);
+    while ($attempt = $attemptsStmt->fetch(PDO::FETCH_ASSOC)) {
+
+    $studentName = trim(
+        (($attempt['fristname'] ?? '') . ' ' . ($attempt['lastname'] ?? ''))
+    );
+
+    if ($studentName === '') {
+        $studentName = 'طالب بدون اسم';
+    }
+
+    $duration = '';
+
+    if (!empty($attempt['started_at']) && !empty($attempt['finished_at'])) {
+
+        $start = strtotime($attempt['started_at']);
+        $finish = strtotime($attempt['finished_at']);
+
+        $seconds = max(0, $finish - $start);
+
+        $hours = floor($seconds / 3600);
+        $minutes = floor(($seconds % 3600) / 60);
+        $secs = $seconds % 60;
+
+        $duration = sprintf('%02d:%02d:%02d', $hours, $minutes, $secs);
+    }
+
+    fputcsv($output, [
+        examStatsCsvSafe($studentName),
+        ($attempt['score'] ?? '') . '%',
+        examStatsCsvSafe($attempt['started_at'] ?? ''),
+        $duration
+    ]);
     }
 
     fclose($output);
@@ -326,7 +361,7 @@ if (($_GET['export'] ?? '') === 'csv' && $exam && $pageError === '') {
             <div class="students-card-heading">
                 <h2>الطلاب المشاركون في الاختبار</h2>
                 <div class="students-card-actions">
-                    <span class="students-count-label"><?php echo number_format(count($students)); ?> طالب</span>
+                    <span class="students-count-label"><?php echo number_format($summary['completed_attempts']); ?> محاولة</span>
                     <a class="export-button" href="?<?php echo examStatsEscape(http_build_query(['id' => $examId, 'export' => 'csv'])); ?>">
                         &#8659; تصدير بيانات الطلاب Exel
                     </a>
